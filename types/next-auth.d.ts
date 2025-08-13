@@ -8,6 +8,7 @@ declare module 'next-auth' {
       email: string;
       role: string;
       image?: string;
+      thingspeakApiKey?: string;
     };
   }
 
@@ -17,6 +18,7 @@ declare module 'next-auth' {
     email: string;
     role: string;
     image?: string;
+    thingspeakApiKey?: string;
   }
 }
 
@@ -24,5 +26,6 @@ declare module 'next-auth/jwt' {
   interface JWT {
     id: string;
     role: string;
+    thingspeakApiKey?: string;
   }
 }

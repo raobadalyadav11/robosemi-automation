@@ -26,6 +26,10 @@ const UserSchema = new mongoose.Schema({
   image: {
     type: String, // For OAuth profile pictures
   },
+  thingspeakApiKey: {
+    type: String,
+    default: '',
+  },
 }, {
   timestamps: true,
 });

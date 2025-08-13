@@ -5,19 +5,58 @@ import { Inter } from 'next/font/google';
 import { SessionProvider } from 'next-auth/react';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/theme-provider';
-import Navbar from '@/components/Navbar';
+
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
+
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  
+  useEffect(() => {
+    if (status === 'loading') return;
+    
+    if (!session && !pathname?.startsWith('/auth')) {
+      router.push('/auth/signin');
+      return;
+    }
+    
+    if (pathname === '/' && session) {
+      const redirectPath = session.user.role === 'admin' || session.user.role === 'operator' ? '/admin' : '/dashboard';
+      router.push(redirectPath);
+      return;
+    }
+    
+    // Restrict admin from accessing user routes
+    if (session && (session.user.role === 'admin' || session.user.role === 'operator')) {
+      if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/street-lights')) {
+        router.push('/admin');
+        return;
+      }
+    }
+  }, [session, status, pathname, router]);
+  
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 to-indigo-100 dark:from-slate-900 dark:to-indigo-950">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isAuthPage = pathname?.startsWith('/auth') || pathname === '/setup';
-
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <body className={`${inter.className} h-full antialiased`}>
@@ -28,23 +67,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SessionProvider>
-            <div className="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-slate-800 dark:to-indigo-950">
-              {!isAuthPage && (
-                <header className="sticky top-0 z-50 border-b border-slate-200/50 bg-white/80 backdrop-blur-xl dark:border-slate-700/50 dark:bg-slate-900/80">
-                  <Navbar />
-                </header>
-              )}
-              <main className={`flex-1 ${!isAuthPage ? 'container mx-auto px-4 py-8 sm:px-6 lg:px-8' : ''}`}>
-                {children}
-              </main>
-              {!isAuthPage && (
-                <footer className="border-t border-slate-200/50 bg-white/30 py-6 backdrop-blur-sm dark:border-slate-700/50 dark:bg-slate-900/30">
-                  <div className="container mx-auto px-4 text-center text-sm text-slate-600 dark:text-slate-400">
-                    © 2024 Street Light Management System. Powered by IoT Technology.
-                  </div>
-                </footer>
-              )}
-            </div>
+            <LayoutContent>{children}</LayoutContent>
             <Toaster position="top-right" richColors theme="system" />
           </SessionProvider>
         </ThemeProvider>

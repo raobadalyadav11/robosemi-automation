@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { name, email, password, role } = await request.json();
+    const { name, email, password, role, thingspeakApiKey } = await request.json();
     
     await dbConnect();
     
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User already exists' }, { status: 400 });
     }
 
-    const user = new User({ name, email, password, role });
+    const user = new User({ name, email, password, role, thingspeakApiKey });
     await user.save();
 
     const { password: _, ...userWithoutPassword } = user.toObject();

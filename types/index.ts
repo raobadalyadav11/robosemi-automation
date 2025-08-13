@@ -5,6 +5,7 @@ export interface User {
   role: 'admin' | 'user' | 'operator';
   password?: string;
   image?: string;
+  thingspeakApiKey?: string;
   createdAt: Date;
   updatedAt: Date;
 }

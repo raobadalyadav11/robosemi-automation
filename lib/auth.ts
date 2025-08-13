@@ -44,6 +44,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           image: user.image,
+          thingspeakApiKey: user.thingspeakApiKey,
         };
       },
     }),
@@ -66,14 +67,18 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         await dbConnect();
         const dbUser = await User.findOne({ email: user.email });
         if (dbUser) {
           token.role = dbUser.role;
           token.id = dbUser._id.toString();
+          token.thingspeakApiKey = dbUser.thingspeakApiKey;
         }
+      }
+      if (trigger === 'update' && session?.thingspeakApiKey) {
+        token.thingspeakApiKey = session.thingspeakApiKey;
       }
       return token;
     },
@@ -81,6 +86,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.role = token.role as string;
         session.user.id = token.id as string;
+        session.user.thingspeakApiKey = token.thingspeakApiKey as string;
       }
       return session;
     },

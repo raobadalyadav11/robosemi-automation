@@ -15,13 +15,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
     }
 
-    const { name, email, role } = await request.json();
+    const { name, email, role, thingspeakApiKey } = await request.json();
     
     await dbConnect();
     
     const user = await User.findByIdAndUpdate(
       params.id,
-      { name, email, role },
+      { name, email, role, thingspeakApiKey },
       { new: true, runValidators: true }
     ).select('-password');
 
